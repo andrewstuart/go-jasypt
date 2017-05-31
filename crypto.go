@@ -16,6 +16,11 @@ var (
 	ErrExceededLength = fmt.Errorf("derived key too long for md5")
 )
 
+// Common implemented decryption algorithms
+const (
+	AlgoPBEWithMD5AndDES = "PBEWitMD5AndDES"
+)
+
 // Constants for maximum PBKDF1 key lengths
 const (
 	MaxLenMD5 = 20
@@ -41,7 +46,7 @@ func PBKDF1MD5(pass, salt []byte, count, l int) ([]byte, error) {
 	return derived[:l], nil
 }
 
-// DecryptJasypt takes bytes encrypted by the default jasypt PBE md5 DES
+// DecryptJasypt takes bytes encrypted by the default Jasypt PBEWithMD5AndDES
 // implementation, as well as a password, and decrypts the byte slice in place.
 // Any errors encountered will be returned.
 func DecryptJasypt(encrypted []byte, password string) error {
@@ -77,17 +82,26 @@ func DecryptJasypt(encrypted []byte, password string) error {
 	return nil
 }
 
+// A Decryptor encapsulates a password and Algorithm for more easily using
+// common decryption across multiple ciphertexts.
 type Decryptor struct {
 	Password, Algorithm string
 }
 
-func (d *Decryptor) Decrypt(bs []byte) error {
-	err := DecryptJasypt(bs, d.Password)
+// Decrypt takes a slice of bytes and decrypts based on the password and
+// algorithm specified.
+func (d Decryptor) Decrypt(bs []byte) (err error) {
+	switch d.Algorithm {
+	case AlgoPBEWithMD5AndDES:
+		// This is the default but we'll expliticly make that obvious by fallthrough
+		fallthrough
+	default:
+		err = DecryptJasypt(bs, d.Password)
 
-	// If the password is empty, notify the end user
-	if err != nil && d.Password == "" {
-		err = ErrEmptyPassword
+		// If the password is empty, notify the end user
+		if err == nil && d.Password == "" {
+			err = ErrEmptyPassword
+		}
 	}
-
-	return err
+	return
 }
