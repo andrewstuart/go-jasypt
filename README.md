@@ -4,7 +4,7 @@
 
 package jasypt was created to assist in the decryption of jasypt-encrypted
 values. Many of the algorithms in this package are for legacy use only. Please
-use strong cryptographic algorithms and keys when encyrpting your sensitive
+use strong cryptographic algorithms and keys when encrypting your sensitive
 plaintext.
 
 ## Usage
