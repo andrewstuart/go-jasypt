@@ -1,4 +1,4 @@
-// package jasypt was created to assist in the decryption of jasypt-encrypted
+// Package jasypt was created to assist in the decryption of jasypt-encrypted
 // values. Many of the algorithms in this package are for legacy use only.
 // Please use strong cryptographic algorithms and keys when encrypting your
 // sensitive plaintext.
@@ -53,17 +53,17 @@ func PBKDF1MD5(pass, salt []byte, count, l int) ([]byte, error) {
 // DecryptJasypt takes bytes encrypted by the default Jasypt PBEWithMD5AndDES
 // implementation, as well as a password, and decrypts the byte slice in place.
 // Any errors encountered will be returned.
-func DecryptJasypt(encrypted []byte, password string) error {
+func DecryptJasypt(encrypted []byte, password string) ([]byte, error) {
 	if len(encrypted) < des.BlockSize {
-		return fmt.Errorf("Invalid encrypted text")
+		return nil, fmt.Errorf("Invalid encrypted text. Text length than block size.")
 	}
 
 	salt := encrypted[:des.BlockSize]
-	encrypted = encrypted[des.BlockSize:]
+	ct := encrypted[des.BlockSize:]
 
 	key, err := PBKDF1MD5([]byte(password), salt, 1000, des.BlockSize*2)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	iv := key[des.BlockSize:]
@@ -71,19 +71,18 @@ func DecryptJasypt(encrypted []byte, password string) error {
 
 	b, err := des.NewCipher(key)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	dst := make([]byte, len(ct))
 	bm := cipher.NewCBCDecrypter(b, iv)
-	bm.CryptBlocks(encrypted, encrypted)
+	bm.CryptBlocks(dst, ct)
 
 	// Remove any padding
-	last := len(encrypted) - 1
-	pad := int(encrypted[last])
+	pad := int(dst[len(dst)-1])
+	dst = dst[:len(dst)-pad]
 
-	encrypted = encrypted[:len(encrypted)-pad]
-
-	return nil
+	return dst, nil
 }
 
 // A Decryptor encapsulates a password and Algorithm for more easily using
@@ -94,18 +93,12 @@ type Decryptor struct {
 
 // Decrypt takes a slice of bytes and decrypts based on the password and
 // algorithm specified.
-func (d Decryptor) Decrypt(bs []byte) (err error) {
+func (d Decryptor) Decrypt(bs []byte) ([]byte, error) {
 	switch d.Algorithm {
 	case AlgoPBEWithMD5AndDES:
-		// This is the default but we'll expliticly make that obvious by fallthrough
-		fallthrough
-	default:
-		err = DecryptJasypt(bs, d.Password)
-
-		// If the password is empty, notify the end user
-		if err == nil && d.Password == "" {
-			err = ErrEmptyPassword
+		if d.Password == "" {
+			return nil, ErrEmptyPassword
 		}
 	}
-	return
+	return nil, fmt.Errorf("unknown jasypt algorithm")
 }
