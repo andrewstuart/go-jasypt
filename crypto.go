@@ -22,7 +22,7 @@ var (
 
 // Common implemented decryption algorithms
 const (
-	AlgoPBEWithMD5AndDES = "PBEWitMD5AndDES"
+	AlgoPBEWithMD5AndDES = "PBEWithMD5AndDES"
 )
 
 // Constants for maximum PBKDF1 key lengths
