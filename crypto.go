@@ -2,6 +2,10 @@
 // values. Many of the algorithms in this package are for legacy use only.
 // Please use strong cryptographic algorithms and keys when encrypting your
 // sensitive plaintext.
+//
+// Note that many times base64 encoding has been applied to jasypt output, and
+// thus you will likely need to base64 decode any strings before attempting to
+// decrypt them.
 package jasypt
 
 import (
@@ -51,8 +55,8 @@ func PBKDF1MD5(pass, salt []byte, count, l int) ([]byte, error) {
 }
 
 // DecryptJasypt takes bytes encrypted by the default Jasypt PBEWithMD5AndDES
-// implementation, as well as a password, and decrypts the byte slice in place.
-// Any errors encountered will be returned.
+// implementation, as well as a password, decrypts the byte slice, and returns
+// a slice of the decrypted bytes.  Any errors encountered will be returned.
 func DecryptJasypt(encrypted []byte, password string) ([]byte, error) {
 	if len(encrypted) < des.BlockSize {
 		return nil, fmt.Errorf("Invalid encrypted text. Text length than block size.")
@@ -92,7 +96,8 @@ type Decryptor struct {
 }
 
 // Decrypt takes a slice of bytes and decrypts based on the password and
-// algorithm specified.
+// algorithm specified, returning the slice of decrypted byts and any errors
+// encountered.
 func (d Decryptor) Decrypt(bs []byte) ([]byte, error) {
 	switch d.Algorithm {
 	case AlgoPBEWithMD5AndDES:
