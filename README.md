@@ -2,16 +2,20 @@
 --
     import "astuart.co/go-jasypt"
 
-package jasypt was created to assist in the decryption of jasypt-encrypted
+Package jasypt was created to assist in the decryption of jasypt-encrypted
 values. Many of the algorithms in this package are for legacy use only. Please
 use strong cryptographic algorithms and keys when encrypting your sensitive
 plaintext.
+
+Note that many times base64 encoding has been applied to jasypt output, and thus
+you will likely need to base64 decode any strings before attempting to decrypt
+them.
 
 ## Usage
 
 ```go
 const (
-	AlgoPBEWithMD5AndDES = "PBEWitMD5AndDES"
+	AlgoPBEWithMD5AndDES = "PBEWithMD5AndDES"
 )
 ```
 Common implemented decryption algorithms
@@ -37,11 +41,11 @@ var (
 #### func  DecryptJasypt
 
 ```go
-func DecryptJasypt(encrypted []byte, password string) error
+func DecryptJasypt(encrypted []byte, password string) ([]byte, error)
 ```
 DecryptJasypt takes bytes encrypted by the default Jasypt PBEWithMD5AndDES
-implementation, as well as a password, and decrypts the byte slice in place. Any
-errors encountered will be returned.
+implementation, as well as a password, decrypts the byte slice, and returns a
+slice of the decrypted bytes. Any errors encountered will be returned.
 
 #### func  PBKDF1MD5
 
@@ -66,7 +70,7 @@ decryption across multiple ciphertexts.
 #### func (Decryptor) Decrypt
 
 ```go
-func (d Decryptor) Decrypt(bs []byte) (err error)
+func (d Decryptor) Decrypt(bs []byte) ([]byte, error)
 ```
 Decrypt takes a slice of bytes and decrypts based on the password and algorithm
-specified.
+specified, returning the slice of decrypted byts and any errors encountered.
