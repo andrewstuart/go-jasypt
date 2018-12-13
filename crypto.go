@@ -100,10 +100,11 @@ type Decryptor struct {
 // encountered.
 func (d Decryptor) Decrypt(bs []byte) ([]byte, error) {
 	switch d.Algorithm {
-	case AlgoPBEWithMD5AndDES:
+	case "", AlgoPBEWithMD5AndDES:
 		if d.Password == "" {
 			return nil, ErrEmptyPassword
 		}
+		return DecryptJasypt(bs, d.Password)
 	}
 	return nil, fmt.Errorf("unknown jasypt algorithm")
 }
